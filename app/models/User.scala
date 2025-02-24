@@ -1,28 +1,25 @@
+// app/models/User.scala
 package models
 
-import java.sql.Timestamp
-import slick.jdbc.MySQLProfile.api.*
+import java.time.LocalDateTime
+import zio.json._
 
-final case class User(
-                       id: Long,
-                       username: String,
-                       email: String,
-                       password: String,
-                       isSuperuser: Boolean = false,
-                       createdAt: Timestamp = new Timestamp(System.currentTimeMillis())
-                     )
-object User {
-  def tupled: ((Long, String, String, String, Boolean, Timestamp)) => User = (User.apply _).tupled
-}
+case class User(
+                 id: Long,
+                 groupId: Long,
+                 firstName: String,
+                 lastName: String,
+                 username: String,
+                 email: String,
+                 password: String,
+                 isSuperuser: Boolean,
+                 createdAt: LocalDateTime,
+                 createdBy: String,
+                 updatedBy: String
+               )
 
-class UsersTable(tag: Tag) extends Table[User](tag, "users") {
-  def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  def username = column[String]("username")
-  def email = column[String]("email")
-  def password = column[String]("password")
-  def isSuperuser = column[Boolean]("is_superuser", O.Default(false))
-  def createdAt = column[Timestamp]("created_at", O.SqlType("TIMESTAMP DEFAULT CURRENT_TIMESTAMP"))
+object User:
+  given JsonEncoder[User] = DeriveJsonEncoder.gen[User]
+  given JsonDecoder[User] = DeriveJsonDecoder.gen[User]
 
-  def * = (id, username, email, password, isSuperuser, createdAt) <> (User.tupled, User.unapply)
-}
-val Users = TableQuery[UsersTable]
+  def tupled = (User.apply _).tupled
